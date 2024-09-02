@@ -1,0 +1,71 @@
+import pandas as pd
+
+# Load the CSV file
+df = pd.read_csv("C:/Users/SHIVANSH/Desktop/Data capture/3/dht22_data.csv")
+
+# Convert the timestamp column to datetime
+df['timestamp'] = pd.to_datetime(df['timestamp'])
+
+# Drop rows with any empty or NaN values
+df = df.dropna()
+
+# Filter out malformed data (e.g., non-numeric values)
+df = df[(df['temperature'].apply(lambda x: isinstance(x, (int, float)))) &
+        (df['humidity'].apply(lambda x: isinstance(x, (int, float))))]
+
+# Save the cleaned data
+df.to_csv('cleaned_sensor_data.csv', index=False)
+
+
+
+import matplotlib.pyplot as plt
+import pandas as pd
+from matplotlib.dates import DateFormatter, AutoDateLocator
+
+# Load the cleaned data
+df = pd.read_csv('cleaned_sensor_data.csv')
+
+# Convert the timestamp column to datetime format if not already
+df['timestamp'] = pd.to_datetime(df['timestamp'])
+
+# Set up a common date formatter and locator
+date_format = DateFormatter("%Y-%m-%d %H:%M")
+locator = AutoDateLocator()
+
+# Plot temperature
+plt.figure()
+plt.plot(df['timestamp'], df['temperature'], label='Temperature')
+plt.xlabel('Timestamp')
+plt.ylabel('Temperature (°C)')
+plt.title('Temperature Over Time')
+plt.gca().xaxis.set_major_formatter(date_format)
+plt.gca().xaxis.set_major_locator(locator)
+plt.xticks(rotation=45)
+plt.tight_layout()  # Adjust layout to prevent overlap
+plt.show()
+
+# Plot humidity
+plt.figure()
+plt.plot(df['timestamp'], df['humidity'], label='Humidity', color='orange')
+plt.xlabel('Timestamp')
+plt.ylabel('Humidity (%)')
+plt.title('Humidity Over Time')
+plt.gca().xaxis.set_major_formatter(date_format)
+plt.gca().xaxis.set_major_locator(locator)
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+# Combined plot
+plt.figure()
+plt.plot(df['timestamp'], df['temperature'], label='Temperature')
+plt.plot(df['timestamp'], df['humidity'], label='Humidity', color='orange')
+plt.xlabel('Timestamp')
+plt.ylabel('Values')
+plt.title('Temperature and Humidity Over Time')
+plt.legend()
+plt.gca().xaxis.set_major_formatter(date_format)
+plt.gca().xaxis.set_major_locator(locator)
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
