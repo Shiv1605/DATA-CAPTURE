@@ -1,0 +1,78 @@
+import serial
+import csv
+
+# Configure the serial port
+ser = serial.Serial('COM15', 9600)  
+
+# Open a CSV file to save the data
+with open('lsm6ds3_gyroscope_data.csv', 'w', newline='') as csvfile:
+    csvwriter = csv.writer(csvfile)
+    csvwriter.writerow(['accel_x', 'accel_y', 'accel_z', 'gyro_x', 'gyro_y', 'gyro_z'])  # Column names
+
+    # Continuously read the serial data
+    while True:
+        line = ser.readline().decode('utf-8').strip()  # Read and decode the serial data
+        data = line.split(',')  # Split the data by commas
+        csvwriter.writerow(data)  # Write the data to the CSV file
+import pandas as pd
+from dash import Dash, dcc, html, Input, Output
+import plotly.express as px
+
+# Load your LSM6DS3 data from CSV
+df = pd.read_csv("C:/Users/SHIVANSH/Desktop/Data capture/6/lsm6ds3_gyroscope_data.csv")
+
+# Initialize the Dash app
+app = Dash(__name__)
+
+# Define the layout of the app
+app.layout = html.Div([
+    html.H1("LSM6DS3 Gyroscope Data Visualization"),
+    
+    # Dropdown for graph type selection
+    dcc.Dropdown(
+        id='graph-type',
+        options=[
+            {'label': 'Scatter Plot', 'value': 'scatter'},
+            {'label': 'Line Chart', 'value': 'line'},
+            {'label': 'Distribution Plot', 'value': 'distplot'}
+        ],
+        value='line'
+    ),
+    
+    # Dropdown for selecting which variables (x, y, z) to plot
+    dcc.Dropdown(
+        id='variable',
+        options=[
+            {'label': 'X Axis', 'value': 'gyro_x'},
+            {'label': 'Y Axis', 'value': 'gyro_y'},
+            {'label': 'Z Axis', 'value': 'gyro_z'},
+            {'label': 'All Axes', 'value': 'all'}
+        ],
+        value='all'
+    ),
+    
+    # Number of samples to display
+    dcc.Input(id='num-samples', type='number', value=100),
+    
+    # Graph for displaying the data
+    dcc.Graph(id='gyroscope-graph')
+])
+
+# Callback to update the graph based on user input
+@app.callback(
+    Output('gyroscope-graph', 'figure'),
+    [Input('graph-type', 'value'), Input('variable', 'value'), Input('num-samples', 'value')]
+)
+def update_graph(graph_type, variable, num_samples):
+    filtered_data = df.head(num_samples)  # Display selected number of samples
+    
+    if variable == 'all':
+        fig = px.line(filtered_data, x=filtered_data.index, y=['gyro_x', 'gyro_y', 'gyro_z'])
+    else:
+        fig = px.line(filtered_data, x=filtered_data.index, y=variable)
+    
+    return fig
+
+# Run the Dash app
+if __name__ == '__main__':
+    app.run_server(debug=True, port=8060)
