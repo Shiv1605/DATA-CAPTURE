@@ -1,0 +1,41 @@
+#include <DHT.h>
+#include <SPI.h>
+#include <WiFiNINA.h>
+
+#define DHTPIN 2     // Pin where the DHT22 sensor is connected
+#define DHTTYPE DHT22   // DHT 22 (AM2302)
+
+DHT dht(DHTPIN, DHTTYPE);
+
+void setup() {
+  Serial.begin(9600);
+  dht.begin();
+  delay(2000); // Allow the sensor to stabilize
+  Serial.println("Reading data from DHT22 sensor...");
+}
+
+void loop() {
+  // Read temperature and humidity values
+  float temperature = dht.readTemperature();
+  float humidity = dht.readHumidity();
+  
+  // Check if readings are valid
+  if (isnan(temperature) || isnan(humidity)) {
+    Serial.println("Failed to read from DHT sensor!");
+    return;
+  }
+  
+  // Print data to Serial monitor for CSV logging
+  Serial.print("Temperature: ");
+  Serial.print(temperature);
+  Serial.print(" °C, Humidity: ");
+  Serial.print(humidity);
+  Serial.println(" %");
+
+  // Print data in CSV format
+  Serial.print(temperature);
+  Serial.print(",");
+  Serial.println(humidity);
+
+  delay(1000); // Delay to capture data every 10 seconds
+}
